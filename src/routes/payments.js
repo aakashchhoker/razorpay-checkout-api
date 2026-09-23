@@ -14,13 +14,16 @@ function getRazorpay() {
 
 export const paymentsRouter = Router()
 
+/** @deprecated Prefer app-level /health — kept for compatibility */
 paymentsRouter.get('/health', (_req, res) => {
-  res.json({
+  res.status(200).json({
     ok: true,
+    status: 'healthy',
     service: 'razorpay-checkout-api',
     demo: config.demoPayments,
     businessName: config.businessName,
     keyIdPrefix: config.keyId ? config.keyId.slice(0, 12) : null,
+    time: new Date().toISOString(),
   })
 })
 

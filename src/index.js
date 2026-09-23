@@ -27,6 +27,29 @@ app.use(
   }),
 )
 
+function healthPayload() {
+  return {
+    ok: true,
+    status: 'healthy',
+    service: 'razorpay-checkout-api',
+    demo: config.demoPayments,
+    businessName: config.businessName,
+    keyIdPrefix: config.keyId ? config.keyId.slice(0, 12) : null,
+    time: new Date().toISOString(),
+  }
+}
+
+// Health probes (no auth) — Render / uptime monitors
+app.get('/', (_req, res) => {
+  res.status(200).json(healthPayload())
+})
+app.get('/health', (_req, res) => {
+  res.status(200).json(healthPayload())
+})
+app.get('/api/health', (_req, res) => {
+  res.status(200).json(healthPayload())
+})
+
 app.use(paymentsRouter)
 
 app.use((err, _req, res, _next) => {

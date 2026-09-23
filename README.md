@@ -85,7 +85,9 @@ That’s it.
 
 | Method | Path | Auth | Purpose |
 |--------|------|------|---------|
-| GET | `/health` | No | Uptime check |
+| GET | `/` | No | Health (root) |
+| GET | `/health` | No | Health check |
+| GET | `/api/health` | No | Health check (alias) |
 | GET | `/v1/config` | `X-Checkout-Key` | Public keyId + plan list |
 | POST | `/v1/orders` | `X-Checkout-Key` | Body: `{ planId }` → order + keyId |
 | POST | `/v1/payments/verify` | `X-Checkout-Key` | Verify Checkout response |
