@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: razorpay-checkout-api
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false
+      - key: CHECKOUT_API_KEY
+        generateValue: true
+      - key: CORS_ORIGINS
+        sync: false
+      - key: BUSINESS_NAME
+        value: My App
+      - key: PLANS_JSON
+        sync: false
+      - key: DEMO_PAYMENTS
+        value: "false"

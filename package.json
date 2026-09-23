@@ -1,0 +1,30 @@
+{
+  "name": "razorpay-checkout-api",
+  "version": "1.0.0",
+  "private": false,
+  "description": "Universal Razorpay Checkout API — deploy once on Render, reuse from any web app in a few steps.",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "razorpay",
+    "checkout",
+    "payments",
+    "upi",
+    "india",
+    "render"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "razorpay": "^2.9.6"
+  }
+}
