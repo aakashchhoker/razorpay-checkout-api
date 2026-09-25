@@ -18,8 +18,8 @@ function parseJsonEnv(name, fallback) {
 
 const defaultPlans = {
   proMonth: { title: 'Monthly', amountPaise: 9900, currency: 'INR' },
-  proYear: { title: 'Yearly', amountPaise: 79900, currency: 'INR' },
-  removeAds: { title: 'Lifetime', amountPaise: 199900, currency: 'INR' },
+  proYear: { title: 'Yearly', amountPaise: 49900, currency: 'INR' },
+  removeAds: { title: 'Lifetime', amountPaise: 99900, currency: 'INR' },
 }
 
 export const config = {

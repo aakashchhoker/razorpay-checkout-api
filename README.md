@@ -42,8 +42,8 @@ Copy your Render URL, e.g. `https://razorpay-checkout-api.onrender.com`
 ```json
 {
   "proMonth": { "title": "Monthly", "amountPaise": 9900, "currency": "INR" },
-  "proYear": { "title": "Yearly", "amountPaise": 79900, "currency": "INR" },
-  "removeAds": { "title": "Lifetime", "amountPaise": 199900, "currency": "INR" }
+  "proYear": { "title": "Yearly", "amountPaise": 49900, "currency": "INR" },
+  "removeAds": { "title": "Lifetime", "amountPaise": 99900, "currency": "INR" }
 }
 ```
 
