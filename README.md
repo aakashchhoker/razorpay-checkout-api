@@ -73,7 +73,7 @@ const result = await pay.checkout({
 App `.env`:
 
 ```env
-VITE_PAYMENT_API_URL=https://razorpay-checkout-api.onrender.com
+VITE_PAYMENT_API_URL=https://api.viewmyjson.com
 VITE_CHECKOUT_API_KEY=same-as-CHECKOUT_API_KEY-on-render
 ```
 
