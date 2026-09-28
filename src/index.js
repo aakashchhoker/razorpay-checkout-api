@@ -8,14 +8,31 @@ const app = express()
 const originList = config.corsOrigins
 const allowAll = originList.includes('*')
 
+function isAllowedOrigin(origin) {
+  if (allowAll || !origin) return true
+  if (originList.includes(origin)) return true
+  try {
+    const { hostname } = new URL(origin)
+    // Any viewmyjson.com host (apex + app + api callers from marketing)
+    if (hostname === 'viewmyjson.com' || hostname.endsWith('.viewmyjson.com')) {
+      return true
+    }
+  } catch {
+    /* ignore */
+  }
+  return false
+}
+
 app.use(
   cors({
     origin(origin, cb) {
-      if (allowAll || !origin) return cb(null, true)
-      if (originList.includes(origin)) return cb(null, true)
+      if (isAllowedOrigin(origin)) return cb(null, true)
+      console.warn(`[cors] blocked origin: ${origin}`)
       return cb(null, false)
     },
     credentials: false,
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'X-Checkout-Key', 'X-API-Key'],
   }),
 )
 
@@ -67,4 +84,9 @@ app.listen(config.port, () => {
   console.log(
     `[razorpay-checkout-api] plans: ${Object.keys(config.plans).join(', ') || '(none)'}`,
   )
+  console.log(
+    `[razorpay-checkout-api] CORS: ${allowAll ? '*' : originList.join(', ')} (+ *.viewmyjson.com)`,
+  )
 })
+
+export default app

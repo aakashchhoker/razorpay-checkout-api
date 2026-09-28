@@ -30,12 +30,12 @@ This small API creates orders + verifies payments. Your apps only send a `planId
 | `RAZORPAY_KEY_ID` | Yes | `rzp_test_…` or `rzp_live_…` |
 | `RAZORPAY_KEY_SECRET` | Yes | Server only |
 | `CHECKOUT_API_KEY` | Recommended | Random string; apps send as `X-Checkout-Key` |
-| `CORS_ORIGINS` | Yes in prod | e.g. `https://myapp.vercel.app,http://localhost:5173` |
+| `CORS_ORIGINS` | Yes in prod | e.g. `https://app.viewmyjson.com,https://viewmyjson.com,http://localhost:5173` |
 | `PLANS_JSON` | Yes | Your prices (see below) |
 | `BUSINESS_NAME` | Optional | Shown on Checkout |
 | `DEMO_PAYMENTS` | Optional | `true` = fake unlock (local only) |
 
-Copy your Render URL, e.g. `https://razorpay-checkout-api.onrender.com`
+Copy your API URL, e.g. `https://api.viewmyjson.com`
 
 ### 2) Define plans (server-side amounts)
 
