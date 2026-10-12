@@ -23,5 +23,7 @@ services:
         value: My App
       - key: PLANS_JSON
         sync: false
+      - key: PLANS_INR_JSON
+        sync: false
       - key: DEMO_PAYMENTS
         value: "false"

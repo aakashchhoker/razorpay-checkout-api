@@ -17,9 +17,15 @@ function parseJsonEnv(name, fallback) {
 }
 
 const defaultPlans = {
-  proMonth: { title: 'Monthly', amountPaise: 9900, currency: 'INR' },
-  proYear: { title: 'Yearly', amountPaise: 49900, currency: 'INR' },
-  removeAds: { title: 'Lifetime', amountPaise: 99900, currency: 'INR' },
+  proMonth: { title: 'Monthly', amountMinorUnits: 500, currency: 'USD' },
+  proYear: { title: 'Yearly', amountMinorUnits: 1000, currency: 'USD' },
+  removeAds: { title: 'Lifetime', amountMinorUnits: 2000, currency: 'USD' },
+}
+
+const defaultIndiaPlans = {
+  proMonth: { title: 'Monthly', amountMinorUnits: 9900, currency: 'INR' },
+  proYear: { title: 'Yearly', amountMinorUnits: 49900, currency: 'INR' },
+  removeAds: { title: 'Lifetime', amountMinorUnits: 99900, currency: 'INR' },
 }
 
 export const config = {
@@ -35,6 +41,7 @@ export const config = {
     .map((s) => s.trim())
     .filter(Boolean),
   plans: parseJsonEnv('PLANS_JSON', defaultPlans),
+  indiaPlans: parseJsonEnv('PLANS_INR_JSON', defaultIndiaPlans),
   demoPayments:
     process.env.DEMO_PAYMENTS === 'true' ||
     !process.env.RAZORPAY_KEY_ID ||
@@ -43,26 +50,51 @@ export const config = {
     /REPLACE|DEMO|your_/i.test(process.env.RAZORPAY_KEY_SECRET || ''),
 }
 
-export function getPlan(planId) {
+export function getCountryCode(req) {
+  const country = [
+    req?.headers?.['cf-ipcountry'],
+    req?.headers?.['x-vercel-ip-country'],
+    req?.headers?.['cloudfront-viewer-country'],
+  ].find((value) => typeof value === 'string' && /^[a-z]{2}$/i.test(value))
+
+  if (!country || ['XX', 'T1'].includes(country.toUpperCase())) return null
+  return country.toUpperCase()
+}
+
+function plansForCountry(countryCode) {
+  return countryCode === 'IN' ? config.indiaPlans : config.plans
+}
+
+function formatPrice(amountMinorUnits, currency) {
+  return new Intl.NumberFormat(currency === 'INR' ? 'en-IN' : 'en-US', {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 0,
+  }).format(Number(amountMinorUnits) / 100)
+}
+
+export function getPlan(planId, countryCode = null) {
   if (!planId) return null
-  const plan = config.plans[planId]
+  const plan = plansForCountry(countryCode)[planId]
   if (!plan) return null
   return {
     id: planId,
     title: plan.title || planId,
-    amountPaise: Number(plan.amountPaise),
-    currency: plan.currency || 'INR',
+    amountMinorUnits: Number(plan.amountMinorUnits),
+    currency: plan.currency || (countryCode === 'IN' ? 'INR' : 'USD'),
   }
 }
 
-export function listPublicPlans() {
-  return Object.entries(config.plans).map(([id, plan]) => ({
+export function listPublicPlans(countryCode = null) {
+  const plans = plansForCountry(countryCode)
+  return Object.entries(plans).map(([id, plan]) => ({
     id,
     title: plan.title || id,
-    amountPaise: Number(plan.amountPaise),
-    currency: plan.currency || 'INR',
-    priceLabel:
-      plan.priceLabel ||
-      `₹${(Number(plan.amountPaise) / 100).toLocaleString('en-IN')}`,
+    amountMinorUnits: Number(plan.amountMinorUnits),
+    currency: plan.currency || (countryCode === 'IN' ? 'INR' : 'USD'),
+    priceLabel: plan.priceLabel || formatPrice(
+      plan.amountMinorUnits,
+      plan.currency || (countryCode === 'IN' ? 'INR' : 'USD'),
+    ),
   }))
 }

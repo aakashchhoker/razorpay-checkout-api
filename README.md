@@ -32,6 +32,7 @@ This small API creates orders + verifies payments. Your apps only send a `planId
 | `CHECKOUT_API_KEY` | Recommended | Random string; apps send as `X-Checkout-Key` |
 | `CORS_ORIGINS` | Yes in prod | e.g. `https://app.viewmyjson.com,https://viewmyjson.com,http://localhost:5173` |
 | `PLANS_JSON` | Yes | Your prices (see below) |
+| `PLANS_INR_JSON` | Optional | India-specific prices; defaults to ₹99 / ₹499 / ₹999 |
 | `BUSINESS_NAME` | Optional | Shown on Checkout |
 | `DEMO_PAYMENTS` | Optional | `true` = fake unlock (local only) |
 
@@ -39,15 +40,28 @@ Copy your API URL, e.g. `https://api.viewmyjson.com`
 
 ### 2) Define plans (server-side amounts)
 
+Prices are selected from the visitor's IP-country as provided by a trusted edge proxy. Requests with country `IN` use `PLANS_INR_JSON`; other countries and requests without a recognized country header use `PLANS_JSON` (USD). For Cloudflare, proxy the API hostname and ensure `CF-IPCountry` reaches the service. The API also recognizes Vercel's `x-vercel-ip-country` and CloudFront's `CloudFront-Viewer-Country`.
+
+USD prices:
 ```json
 {
-  "proMonth": { "title": "Monthly", "amountPaise": 9900, "currency": "INR" },
-  "proYear": { "title": "Yearly", "amountPaise": 49900, "currency": "INR" },
-  "removeAds": { "title": "Lifetime", "amountPaise": 99900, "currency": "INR" }
+  "proMonth": { "title": "Monthly", "amountMinorUnits": 500, "currency": "USD" },
+  "proYear": { "title": "Yearly", "amountMinorUnits": 1000, "currency": "USD" },
+  "removeAds": { "title": "Lifetime", "amountMinorUnits": 2000, "currency": "USD" }
 }
 ```
 
-`amountPaise` = rupees × 100. Clients **cannot** change the price — only send `planId`.
+India prices default to:
+
+```json
+{
+  "proMonth": { "title": "Monthly", "amountMinorUnits": 9900, "currency": "INR" },
+  "proYear": { "title": "Yearly", "amountMinorUnits": 49900, "currency": "INR" },
+  "removeAds": { "title": "Lifetime", "amountMinorUnits": 99900, "currency": "INR" }
+}
+```
+
+`amountMinorUnits` = major currency units × 100 (USD cents or INR paise). Clients **cannot** change the order price or currency — they only send `planId`. `GET /v1/plans` returns the prices for the request's detected country.
 
 ### 3) Call from your frontend
 
@@ -89,6 +103,7 @@ That’s it.
 | GET | `/health` | No | Health check |
 | GET | `/api/health` | No | Health check (alias) |
 | GET | `/v1/config` | `X-Checkout-Key` | Public keyId + plan list |
+| GET | `/v1/plans` | No | IP-country-specific public plan prices |
 | POST | `/v1/orders` | `X-Checkout-Key` | Body: `{ planId }` → order + keyId |
 | POST | `/v1/payments/verify` | `X-Checkout-Key` | Verify Checkout response |
 | POST | `/v1/webhooks` | Razorpay signature | Optional webhook |

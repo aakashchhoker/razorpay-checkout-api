@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import { Router } from 'express'
 import Razorpay from 'razorpay'
-import { config, getPlan, listPublicPlans } from '../config.js'
+import { config, getCountryCode, getPlan, listPublicPlans } from '../config.js'
 import { requireCheckoutKey } from '../middleware/auth.js'
 
 function getRazorpay() {
@@ -28,30 +28,54 @@ paymentsRouter.get('/health', (_req, res) => {
 })
 
 /** Public-ish config for frontends (no secrets). Still requires API key if configured. */
-paymentsRouter.get('/v1/config', requireCheckoutKey, (_req, res) => {
+paymentsRouter.get('/v1/config', requireCheckoutKey, (req, res) => {
+  const country = getCountryCode(req)
+  const currency = country === 'IN' ? 'INR' : 'USD'
+  res.set('Cache-Control', 'private, no-store')
   res.json({
     ok: true,
     demo: config.demoPayments,
     keyId: config.keyId,
     businessName: config.businessName,
-    plans: listPublicPlans(),
+    country,
+    currency,
+    plans: listPublicPlans(country),
+  })
+})
+
+/** Public regional prices; contains no credentials or payment details. */
+paymentsRouter.get('/v1/plans', (req, res) => {
+  const country = getCountryCode(req)
+  res.set('Cache-Control', 'private, no-store')
+  res.json({
+    ok: true,
+    country,
+    currency: country === 'IN' ? 'INR' : 'USD',
+    plans: listPublicPlans(country),
   })
 })
 
 /**
  * Create an order.
  * Body: { planId: string, notes?: object, receipt?: string }
- * Amount always comes from server PLANS_JSON for the planId.
+ * Amount and currency always come from server-side regional plans.
  */
 paymentsRouter.post('/v1/orders', requireCheckoutKey, async (req, res) => {
   try {
     const planId = req.body?.planId
-    const plan = getPlan(planId)
-    if (!plan || !Number.isFinite(plan.amountPaise) || plan.amountPaise <= 0) {
+    const country = getCountryCode(req)
+    const plan = getPlan(planId, country)
+    if (
+      !plan ||
+      !Number.isFinite(plan.amountMinorUnits) ||
+      plan.amountMinorUnits <= 0
+    ) {
       return res.status(400).json({
         ok: false,
         error: 'Unknown or invalid planId. Check PLANS_JSON on the server.',
-        availablePlanIds: Object.keys(config.plans),
+        availablePlanIds: Object.keys(
+          country === 'IN' ? config.indiaPlans : config.plans,
+        ),
       })
     }
 
@@ -74,7 +98,7 @@ paymentsRouter.post('/v1/orders', requireCheckoutKey, async (req, res) => {
         businessName: config.businessName,
         order: {
           id: `order_demo_${Date.now()}`,
-          amount: plan.amountPaise,
+          amount: plan.amountMinorUnits,
           currency: plan.currency,
           receipt,
         },
@@ -84,7 +108,7 @@ paymentsRouter.post('/v1/orders', requireCheckoutKey, async (req, res) => {
 
     const rzp = getRazorpay()
     const order = await rzp.orders.create({
-      amount: plan.amountPaise,
+      amount: plan.amountMinorUnits,
       currency: plan.currency,
       receipt,
       notes,

@@ -97,7 +97,7 @@ export function createPayClient({
         const rzp = new window.Razorpay({
           key: keyId,
           amount: order.amount,
-          currency: order.currency || 'INR',
+          currency: order.currency || 'USD',
           name: name || businessName,
           description: description || plan?.title || 'Payment',
           order_id: order.id,
